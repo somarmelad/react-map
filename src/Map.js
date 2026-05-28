@@ -10,66 +10,12 @@ const STYLES = {
     dark: "41457d0f-9483-472c-9e91-e21b073d3396",
 };
 
-// Конфигурация обычного слоя с точками (маркерами аварий)
-const LAYER_POINTS = {
-    id: "dtp-data-layer",
-    filter: [
-        "all",
-        ["match", ["sourceAttr", "visible"], [true], true, false],
-    ],
-    type: "point",
-    style: {
-        iconImage: "caution",
-        iconWidth: 15,
-        textField: ["concat", " Пол: ", ["get", "driver_gender"]],
-        textFont: ["Noto_Sans"],
-        textColor: "#000000",
-        textHaloColor: "#fff",
-        textHaloWidth: 1,
-        iconPriority: 100,
-        textPriority: 100,
-    },
-};
-
-// Конфигурация слоя тепловой карты (Heatmap)
-const LAYER_HEATMAP = {
-    id: "dtp-heatmap-layer",
-    filter: ["match", ["sourceAttr", "visible"], [true], true, false],
-    type: "heatmap",
-    style: {
-        color: [
-            "interpolate",
-            ["linear"],
-            ["heatmap-density"],
-            0, "rgba(0, 0, 2, 0.02)",
-            0.2, "rgb(100, 42, 104)",
-            0.4, "rgba(165, 72, 116, 0.6)",
-            0.6, "rgba(218, 98, 108, 0.8)",
-            0.75, "rgba(204, 109, 71, 0.9)",
-            0.9, "rgba(183, 140, 88, 0.95)",
-            1, "rgb(255, 252, 225)",
-        ],
-        radius: 25,
-        intensity: 1,
-        opacity: 0.6,
-        downscale: 1,
-    },
-};
-
 export const Map = () => {
     const [isTrafficOn, setIsTrafficOn] = useState(false);
-    // 1. Новое состояние для отслеживания режима отображения (Точки или Тепловая карта)
-    const [isHeatmapOn, setIsHeatmapOn] = useState(false);
 
     const mapInstanceRef = useRef(null);
     const containerRef = useRef(null);
 
-    // Реф необходим, чтобы обработчик "styleload" всегда видел актуальный выбор пользователя
-    const isHeatmapOnRef = useRef(isHeatmapOn);
-
-    useEffect(() => {
-        isHeatmapOnRef.current = isHeatmapOn;
-    }, [isHeatmapOn]);
 
     const processedGeoData = useMemo(() => {
         return {
@@ -104,8 +50,13 @@ export const Map = () => {
         }
     };
 
-    const setDarkTheme = () => applyTheme("dark");
-    const setLightTheme = () => applyTheme("light");
+    const setDarkTheme = () => {
+        applyTheme("dark");
+    };
+
+    const setLightTheme = () => {
+        applyTheme("light");
+    };
 
     const toggleTraffic = () => {
         const map = mapInstanceRef.current;
@@ -118,29 +69,6 @@ export const Map = () => {
                 setIsTrafficOn(true);
             }
         }
-    };
-
-    // 2. Функция плавного переключения слоев по кнопке
-    const toggleLayerType = () => {
-        const map = mapInstanceRef.current;
-        if (!map) return;
-
-        setIsHeatmapOn((prev) => {
-            const nextState = !prev;
-
-            // Безопасно удаляем старые слои во избежание дублирования или ошибок
-            try { map.removeLayer("dtp-data-layer"); } catch (e) {}
-            try { map.removeLayer("dtp-heatmap-layer"); } catch (e) {}
-
-            // Добавляем нужный слой в зависимости от нового состояния
-            if (nextState) {
-                map.addLayer(LAYER_HEATMAP);
-            } else {
-                map.addLayer(LAYER_POINTS);
-            }
-
-            return nextState;
-        });
     };
 
     useEffect(() => {
@@ -160,26 +88,72 @@ export const Map = () => {
 
             mapInstanceRef.current = map;
 
-            map.on("trafficshow", () => setIsTrafficOn(true));
-            map.on("traffichide", () => setIsTrafficOn(false));
+            map.on("trafficshow", () => {
+                setIsTrafficOn(true);
+            });
+
+            map.on("traffichide", () => {
+                setIsTrafficOn(false);
+            });
+
 
             map.on("styleload", () => {
                 if (isCanceled) return;
 
-                // Источник геоданных создается заново при каждой смене темы оформления
-                new mapglAPI.GeoJsonSource(map, {
+
+                const source = new mapglAPI.GeoJsonSource(map, {
                     data: processedGeoData,
                     attributes: {
                         visible: true,
                     },
                 });
 
-                // 3. Проверяем через реф, какой слой должен отрисоваться после смены темы
-                if (isHeatmapOnRef.current) {
-                    map.addLayer(LAYER_HEATMAP);
-                } else {
-                    map.addLayer(LAYER_POINTS);
-                }
+                const layer = {
+                    id: "dtp-data-layer",
+                    filter: [
+                        "all",
+                        ["match", ["sourceAttr", "visible"], [true], true, false],
+                    ],
+                    type: "point",
+                    style: {
+                        iconImage: "caution",
+                        iconWidth: 15,
+                        textField: ["concat", " Пол: ", ["get", "driver_gender"]],
+                        textFont: ["Noto_Sans"],
+                        textColor: "#000000",
+                        textHaloColor: "#fff",
+                        textHaloWidth: 1,
+                        iconPriority: 100,
+                        textPriority: 100,
+                    },
+                };
+
+
+                const layer2 = {
+                    id: "dtp-heatmap-layer",
+                    filter: ["match", ["sourceAttr", "visible"], [true], true, false],
+                    type: "heatmap",
+                    style: {
+                        color: [
+                            "interpolate",
+                            ["linear"],
+                            ["heatmap-density"],
+                            0, "rgba(0, 0, 2, 0.02)",
+                            0.2, "rgb(100, 42, 104)",
+                            0.4, "rgba(165, 72, 116, 0.6)",
+                            0.6, "rgba(218, 98, 108, 0.8)",
+                            0.75, "rgba(204, 109, 71, 0.9)",
+                            0.9, "rgba(183, 140, 88, 0.95)",
+                            1, "rgb(255, 252, 225)",
+                        ],
+                        radius: 25,
+                        intensity: 1,
+                        opacity: 0.6,
+                        downscale: 1,
+                    },
+                };
+
+                map.addLayer(layer2);
             });
         });
 
@@ -203,22 +177,14 @@ export const Map = () => {
                     onClick={setDarkTheme}
                     style={{ padding: "6px 12px", cursor: "pointer", fontWeight: "bold" }}
                 >
-                    Тёмная тема 🌙
+                    Переключить на тёмную тему
                 </button>
 
                 <button
                     onClick={setLightTheme}
                     style={{ padding: "6px 12px", cursor: "pointer", fontWeight: "bold" }}
                 >
-                    Светлая тема 🌞
-                </button>
-
-                {/* 4. Новая кнопка переключения отображения данных */}
-                <button
-                    onClick={toggleLayerType}
-                    style={{ padding: "6px 12px", cursor: "pointer", fontWeight: "bold", backgroundColor: isHeatmapOn ? "#ffebd6" : "#fff" }}
-                >
-                    Режим: {isHeatmapOn ? "🔥 Тепловая карта" : "📍 Точки"}
+                    Переключить на светлую тему
                 </button>
 
                 <button

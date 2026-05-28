@@ -1,7 +1,7 @@
 {
   "name": "react-map",
   "version": "0.1.0",
-  "homepage": "https://somarmelad.github.io/react-map",
+  "homepage": "https://somarmelad.github.io/react-map2",
   "private": true,
   "dependencies": {
     "@2gis/mapgl": "^1.72.3",
