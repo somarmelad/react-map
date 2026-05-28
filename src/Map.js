@@ -6,8 +6,8 @@ import geoData from "./data/tambovskaia-oblast.json";
 export const MAP_CENTER = [41.4333, 52.7167];
 
 const STYLES = {
-    light: "c9d79a42-f5f1-413a-a0c8-cd40cf7529b4",
-    dark: "f0958828-b233-4f70-8632-e2339e4485a8",
+    light: "5487e886-c339-47da-8453-a407bbf62aee",
+    dark: "41457d0f-9483-472c-9e91-e21b073d3396",
 };
 
 export const Map = () => {

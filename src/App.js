@@ -5,7 +5,7 @@ import { Map } from './Map';
 
 function App() {
     return (
-        <div style={{ width: '100%', height: 700 }}>
+        <div style={{ width: '100%', height: 900 }}>
             <Map />
         </div>
     );
