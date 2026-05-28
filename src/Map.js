@@ -153,7 +153,7 @@ export const Map = () => {
                     },
                 };
 
-                map.addLayer(layer2);
+                map.addLayer(layer);
             });
         });
 
