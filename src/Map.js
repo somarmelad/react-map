@@ -154,6 +154,7 @@ export const Map = () => {
                 };
 
                 map.addLayer(layer);
+                map.addLayer(layer2);
             });
         });
 
