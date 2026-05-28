@@ -116,7 +116,7 @@ export const Map = () => {
                     ],
                     type: "point",
                     style: {
-                        iconImage: "caution",
+                        iconImage: "mark",
                         iconWidth: 15,
                         textField: ["concat", " Пол: ", ["get", "driver_gender"]],
                         textFont: ["Noto_Sans"],
